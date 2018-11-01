@@ -15,8 +15,8 @@ from plotutil import PlotCallback
 wandb.init()
 config = wandb.config
 
-config.repeated_predictions = True
-config.look_back = 128
+config.repeated_predictions = False
+config.look_back = 20
 
 def load_data(data_type="airline"):
     if data_type == "flu":
@@ -39,7 +39,7 @@ def create_dataset(dataset):
         dataY.append(dataset[i + config.look_back])
     return np.array(dataX), np.array(dataY)
 
-data = load_data("sin")
+data = load_data()
     
 # normalize data to between 0 and 1
 max_val = max(data)
@@ -59,12 +59,10 @@ testX = testX[:, :, np.newaxis]
 
 # create and fit the RNN
 model = Sequential()
-model.add(SimpleRNN(4, input_shape=(config.look_back,1 )))
+model.add(Flatten(input_shape=(config.look_back,1 )))
 model.add(Dense(1))
-
-model.compile(loss='mae', optimizer='rmsprop')
-
-model.fit(trainX, trainY, epochs=100, batch_size=20, validation_data=(testX, testY),  callbacks=[WandbCallback(), PlotCallback(trainX, trainY, testX, testY, config.look_back)])
+model.compile(loss='mse', optimizer='adam')
+model.fit(trainX, trainY, epochs=1000, batch_size=10, validation_data=(testX, testY),  callbacks=[WandbCallback(), PlotCallback(trainX, trainY, testX, testY, config.look_back)])
 
 
 
